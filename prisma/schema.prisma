@@ -1,13 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider     = "postgresql"
-  url          = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -16,17 +13,17 @@ enum UserRole {
 }
 
 model Account {
-  id                String   @id @default(cuid())
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?  @db.Text
-  access_token      String?  @db.Text
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?  @db.Text
+  id_token          String? @db.Text
   session_state     String?
   createdAt         DateTime @default(now()) @map(name: "created_at")
   updatedAt         DateTime @default(now()) @map(name: "updated_at")
@@ -61,6 +58,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  sites    Site[]
 
   stripeCustomerId       String?   @unique @map(name: "stripe_customer_id")
   stripeSubscriptionId   String?   @unique @map(name: "stripe_subscription_id")
@@ -77,4 +75,62 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map(name: "verification_tokens")
+}
+
+model Site {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  slug        String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map(name: "created_at")
+  updatedAt   DateTime @default(now()) @map(name: "updated_at")
+  published   Boolean  @default(false)
+  templateId  String?
+  template    Template? @relation(fields: [templateId], references: [id])
+  settings    Json?    @default("{}")
+  blocks      Block[]
+  versions    Version[]
+
+  content     String?  
+
+  @@map(name: "sites")
+}
+
+model Template {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  category    String @default("general")
+  preview     String?
+  blocksData  Json   @default("[]")
+  sites       Site[]
+
+  @@map(name: "templates")
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  type      String
+  content   Json
+  position  Int
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @default(now()) @map(name: "updated_at")
+
+  @@map(name: "blocks")
+}
+
+model Version {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  data      Json
+  version   Int
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  isActive  Boolean  @default(false)
+
+  @@map(name: "versions")
 }

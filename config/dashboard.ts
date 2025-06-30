@@ -14,6 +14,18 @@ export const sidebarLinks: SidebarNavItem[] = [
       },
       { href: "/dashboard", icon: "dashboard", title: "Dashboard" },
       {
+        href: "/dashboard/sites",
+        icon: "billing",
+        title: "Sites",
+        authorizeOnly: UserRole.USER,
+      },
+      {
+        href: "/dashboard/templates",
+        icon: "billing",
+        title: "Templates",
+        authorizeOnly: UserRole.USER,
+      },
+      {
         href: "/dashboard/billing",
         icon: "billing",
         title: "Billing",
@@ -39,13 +51,13 @@ export const sidebarLinks: SidebarNavItem[] = [
   {
     title: "OPTIONS",
     items: [
-      { href: "/dashboard/settings", icon: "settings", title: "Settings" },
-      { href: "/", icon: "home", title: "Homepage" },
+      { href: "/dashboard/settings", icon: "settings", title: "Ustawienia" },
+      { href: "/", icon: "home", title: "Strona Główna" },
       { href: "/docs", icon: "bookOpen", title: "Documentation" },
       {
         href: "#",
         icon: "messages",
-        title: "Support",
+        title: "Pomoc",
         authorizeOnly: UserRole.USER,
         disabled: true,
       },

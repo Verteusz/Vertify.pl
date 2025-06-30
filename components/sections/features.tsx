@@ -1,64 +1,44 @@
-import Link from "next/link";
+"use client";
 
 import { features } from "@/config/landing";
-import { Button } from "@/components/ui/button";
-import { HeaderSection } from "@/components/shared/header-section";
 import { Icons } from "@/components/shared/icons";
+import { HeaderSection } from "@/components/shared/header-section";
 import MaxWidthWrapper from "@/components/shared/max-width-wrapper";
 
 export default function Features() {
   return (
-    <section>
-      <div className="pb-6 pt-28">
-        <MaxWidthWrapper>
+    <section className="py-24 bg-gray-950">
+      <MaxWidthWrapper>
+        <div className="text-center mb-16">
           <HeaderSection
             label="Features"
-            title="Discover all features."
-            subtitle="Harum quae dolore inventore repudiandae? orrupti aut temporibus
-          ariatur."
+            title="Everything you need to get online"
+            subtitle="Build your business website in a few clicks. Custom templates, feature plugins, and AI content help you go live—fast!"
           />
+        </div>
 
-          <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = Icons[feature.icon || "nextjs"];
-              return (
-                <div
-                  className="group relative overflow-hidden rounded-2xl border bg-background p-5 md:p-8"
-                  key={feature.title}
-                >
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0 aspect-video -translate-y-1/2 rounded-full border bg-gradient-to-b from-purple-500/80 to-white opacity-25 blur-2xl duration-300 group-hover:-translate-y-1/4 dark:from-white dark:to-white dark:opacity-5 dark:group-hover:opacity-10"
-                  />
-                  <div className="relative">
-                    <div className="relative flex size-12 rounded-2xl border border-border shadow-sm *:relative *:m-auto *:size-6">
-                      <Icon />
-                    </div>
-
-                    <p className="mt-6 pb-6 text-muted-foreground">
-                      {feature.description}
-                    </p>
-
-                    <div className="-mb-5 flex gap-3 border-t border-muted py-4 md:-mb-7">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        rounded="xl"
-                        className="px-4"
-                      >
-                        <Link href="/" className="flex items-center gap-2">
-                          <span>Visit the site</span>
-                          <Icons.arrowUpRight className="size-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => {
+            const Icon = Icons[feature.icon || "nextjs"]; // fallback
+            return (
+              <div
+                key={index}
+                className="group p-8 rounded-2xl bg-gray-900/50 border border-gray-800 hover:border-[#7c3aed]/50 transition-all duration-300 hover:bg-gray-900/80"
+              >
+                <div className="w-12 h-12 bg-[#7c3aed]/10 rounded-lg flex items-center justify-center mb-6 group-hover:bg-[#7c3aed]/20 transition-colors">
+                  <Icon className="w-6 h-6 text-[#7c3aed]" />
                 </div>
-              );
-            })}
-          </div>
-        </MaxWidthWrapper>
-      </div>
+                <h3 className="text-xl font-semibold text-white mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-400 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </MaxWidthWrapper>
     </section>
   );
 }
