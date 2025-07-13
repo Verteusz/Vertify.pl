@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -5,7 +6,7 @@ import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/db";
 
 const createSiteSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1, "Site name is required").max(100, "Site name too long"),
   description: z.string().optional(),
   templateId: z.string().optional(),
 });
@@ -17,12 +18,17 @@ function generateSlug(text: string): string {
     .trim()
     .replace(/\s+/g, "-") // Replace spaces with -
     .replace(/[^\w\-]+/g, "") // Remove non-word chars
-    .replace(/\-\-+/g, "-"); // Collapse multiple dashes
+    .replace(/\-\-+/g, "-") // Collapse multiple dashes
+    .replace(/^-+|-+$/g, ""); // Remove leading/trailing dashes
 }
 
 // Ensure slug is unique in DB
 async function generateUniqueSlug(base: string): Promise<string> {
   const baseSlug = generateSlug(base);
+  if (!baseSlug) {
+    throw new Error("Invalid site name - cannot generate slug");
+  }
+  
   let slug = baseSlug;
   let count = 1;
 
@@ -42,11 +48,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, description, templateId } = createSiteSchema.parse(body);
+    const validatedData = createSiteSchema.parse(body);
+    const { name, description, templateId } = validatedData;
 
     // Get template content if templateId is provided
     let templateContent = null;
-    if (templateId) {
+    if (templateId && templateId !== "none") {
       const template = await prisma.template.findFirst({
         where: { id: templateId },
       });
@@ -59,17 +66,36 @@ export async function POST(req: NextRequest) {
     const site = await prisma.site.create({
       data: {
         name,
-        description,
-        templateId: templateId || null,
+        description: description || null,
+        templateId: templateId && templateId !== "none" ? templateId : null,
         content: templateContent,
         userId: user.id,
         slug,
+      },
+      include: {
+        template: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
     return NextResponse.json(site);
   } catch (error) {
     console.error("Error creating site:", error);
+    
+    if (error instanceof z.ZodError) {
+      return new NextResponse(
+        JSON.stringify({ error: "Validation error", details: error.errors }),
+        { status: 400 }
+      );
+    }
+    
+    if (error instanceof Error && error.message.includes("slug")) {
+      return new NextResponse("Invalid site name", { status: 400 });
+    }
+    
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

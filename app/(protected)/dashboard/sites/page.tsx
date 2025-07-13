@@ -1,3 +1,4 @@
+
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 
@@ -46,23 +47,28 @@ export default async function SitesPage() {
         </CreateSiteModal>
       </DashboardHeader>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {sites.map((site) => (
-          <SiteCard key={site.id} site={site} />
-        ))}
-
-        {sites.length === 0 && (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground mb-4">No sites yet. Create your first site!</p>
+      {sites.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">No sites yet</h3>
+            <p className="text-muted-foreground">
+              Get started by creating your first site.
+            </p>
             <CreateSiteModal>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Create New Site
+                Create Your First Site
               </Button>
             </CreateSiteModal>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {sites.map((site) => (
+            <SiteCard key={site.id} site={site} />
+          ))}
+        </div>
+      )}
     </>
   );
 }

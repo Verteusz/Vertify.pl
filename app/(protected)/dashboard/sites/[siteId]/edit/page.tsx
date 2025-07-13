@@ -1,33 +1,46 @@
-import { redirect } from "next/navigation";
-import { notFound } from "next/navigation";
-
+import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { constructMetadata } from "@/lib/utils";
 import { prisma } from "@/lib/db";
+import { constructMetadata } from "@/lib/utils";
 import { SiteEditor } from "@/components/editor/site-editor";
 
-interface SiteEditorPageProps {
+interface SiteEditPageProps {
   params: {
     siteId: string;
   };
 }
 
 export const metadata = constructMetadata({
-  title: "Site Editor – Vertify",
-  description: "Edit your site with drag and drop blocks.",
+  title: "Edit Site – Vertify",
+  description: "Edit your site content.",
 });
 
-export default async function SiteEditorPage({ params }: SiteEditorPageProps) {
-  const user = await getCurrentUser();
-
-  if (!user?.id) redirect("/login");
-
+async function getSite(siteId: string, userId: string) {
   const site = await prisma.site.findFirst({
     where: {
-      id: params.siteId,
-      userId: user.id,
+      id: siteId,
+      userId: userId,
+    },
+    include: {
+      template: {
+        select: {
+          name: true,
+        },
+      },
     },
   });
+
+  return site;
+}
+
+export default async function SiteEditPage({ params }: SiteEditPageProps) {
+  const user = await getCurrentUser();
+
+  if (!user?.id) {
+    redirect("/login");
+  }
+
+  const site = await getSite(params.siteId, user.id);
 
   if (!site) {
     notFound();

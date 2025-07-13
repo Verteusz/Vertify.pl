@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/session";
@@ -29,27 +30,54 @@ export async function POST(
       return new NextResponse("No content to publish", { status: 400 });
     }
 
-    // Create a new version before publishing
-    await prisma.version.create({
+    // Create version history before publishing
+    await prisma.siteVersion.create({
       data: {
         siteId: site.id,
-        data: JSON.parse(site.content), // site.content must be JSON string
-        version: (await prisma.version.count({ where: { siteId: site.id } })) + 1,
-        isActive: true,
+        content: site.content,
+        version:
+          (await prisma.siteVersion.count({
+            where: { siteId: site.id },
+          })) + 1,
       },
     });
 
-    // Update site to published
-    const updatedSite = await prisma.site.update({
+    // Clean up old versions (keep only last 5)
+    const versions = await prisma.siteVersion.findMany({
+      where: { siteId: site.id },
+      orderBy: { version: "desc" },
+      skip: 5,
+    });
+
+    if (versions.length > 0) {
+      await prisma.siteVersion.deleteMany({
+        where: {
+          id: {
+            in: versions.map((v) => v.id),
+          },
+        },
+      });
+    }
+
+    // Publish the site
+    const publishedSite = await prisma.site.update({
       where: {
         id: site.id,
       },
       data: {
         published: true,
+        updatedAt: new Date(),
+      },
+      include: {
+        template: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(updatedSite);
+    return NextResponse.json(publishedSite);
   } catch (error) {
     console.error("Error publishing site:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
